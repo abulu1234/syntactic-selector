@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المختار التركيبي - الواجهة التفاعلية</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            min-width: 120px;
+        }
+        
+        select, input, button {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .context-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .context-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-right: 4px solid #667eea;
+        }
+        
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>المختار التركيبي</h1>
+            <p>تحليل تفاعلي للتراكيب اللفظية مع رسوم بيانية متقدمة</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>ملف البيانات:</label>
+                <input type="file" id="dataFile" accept=".json">
+                <button onclick="loadData()">تحميل البيانات</button>
+                <button onclick="loadSampleData()">تحميل بيانات تجريبية</button>
+            </div>
+            
+            <div class="control-group">
+                <label>فلتر الترجيح:</label>
+                <select id="classificationFilter">
+                    <option value="all">جميع التراكيب</option>
+                    <option value="ترجيح قوي جدًّا">ترجيح قوي جدًّا</option>
+                    <option value="ترجيح قوي">ترجيح قوي</option>
+                    <option value="ترجيح محتمل جدًّا">ترجيح محتمل جدًّا</option>
+                    <option value="ترجيح محتمل">ترجيح محتمل</option>
+                    <option value="تركيب ضعيف">تركيب ضعيف</option>
+                    <option value="تركيب ضعيف جدًّا">تركيب ضعيف جدًّا</option>
+                </select>
+                
+                <label>ترتيب حسب:</label>
+                <select id="sortBy">
+                    <option value="pmi">PMI</option>
+                    <option value="frequency">التكرار</option>
+                    <option value="spread">الانتشار</option>
+                    <option value="entropy">التنوع السياقي</option>
+                </select>
+                
+                <button onclick="applyFilters()">تطبيق الفلاتر</button>
+            </div>
+        </div>
+        
+        <div class="stats-grid" id="statsGrid">
+            <!-- ستُملأ بالإحصائيات -->
+        </div>
+        
+        <div class="dashboard">
+            <div class="chart-container">
+                <div class="chart-title">خريطة حرارية للتراكيب عبر الملفات</div>
+                <div id="heatmap"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">التحليل ثلاثي الأبعاد (PMI, T-Score, Log-Likelihood)</div>
+                <div id="scatter3d"></div>
+            </div>
+            
+            <div class="chart-container full-width">
+                <div class="chart-title">مخطط Chord للارتباطات</div>
+                <div id="chordChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">توزيع الترجيحات</div>
+                <div id="classificationChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">شجرة قرار الترجيح</div>
+                <div id="decisionTree"></div>
+            </div>
+        </div>
+        
+        <div class="chart-container full-width">
+            <div class="chart-title">جدول التراكيب التفاعلي</div>
+            <div id="dataTable"></div>
+        </div>
+    </div>
+    
+    <!-- Modal للسياقات -->
+    <div class="context-modal" id="contextModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">نماذج السياق</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        let data = null;
+        let filteredData = [];
+        
+        // تحميل البيانات
+        async function loadData() {
+            const fileInput = document.getElementById('dataFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('الرجاء اختيار ملف JSON');
+                return;
+            }
+            
+            try {
+                const text = await file.text();
+                data = JSON.parse(text);
+                processData();
+            } catch (error) {
+                alert('خطأ في قراءة الملف: ' + error.message);
+            }
+        }
+        
+        // تحميل بيانات تجريبية
+        function loadSampleData() {
+            // بيانات تجريبية للعرض
+            data = {
+                metadata: {
+                    total_bigrams: 150,
+                    total_unigrams: 500,
+                    total_files: 5
+                },
+                bigrams: [
+                    {
+                        compound: "الكتاب المقدس",
+                        frequency: 45,
+                        spread: 3,
+                        density: 15.0,
+                        entropy: 2.1,
+                        pmi: 8.5,
+                        t_score: 6.2,
+                        log_likelihood: 180.3,
+                        basic_classification: "ترجيح قوي جدًّا",
+                        comprehensive_classification: "ترجيح قوي جدًّا",
+                        contexts: [
+                            {
+                                file: "كتاب (1).txt",
+                                context: "في الكتاب المقدس نجد الحكمة",
+                                position: 2
+                            }
+                        ]
+                    },
+                    {
+                        compound: "الحياة اليومية",
+                        frequency: 32,
+                        spread: 4,
+                        density: 8.0,
+                        entropy: 1.8,
+                        pmi: 7.2,
+                        t_score: 5.1,
+                        log_likelihood: 145.7,
+                        basic_classification: "ترجيح قوي",
+                        comprehensive_classification: "ترجيح قوي",
+                        contexts: []
+                    }
+                ],
+                file_stats: {
+                    "كتاب (1).txt": {total_words: 1200, bigrams: 800},
+                    "كتاب (2).txt": {total_words: 950, bigrams: 650}
+                }
+            };
+            processData();
+        }
+        
+        // معالجة البيانات
+        function processData() {
+            if (!data) return;
+            
+            filteredData = [...data.bigrams];
+            updateStats();
+            createHeatmap();
+            createScatter3D();
+            createChordChart();
+            createClassificationChart();
+            createDecisionTree();
+            createDataTable();
+        }
+        
+        // تحديث الإحصائيات
+        function updateStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${data.metadata.total_bigrams}</div>
+                    <div class="stat-label">إجمالي التراكيب</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${data.metadata.total_unigrams}</div>
+                    <div class="stat-label">الكلمات المفردة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${data.metadata.total_files}</div>
+                    <div class="stat-label">عدد الملفات</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${filteredData.length}</div>
+                    <div class="stat-label">التراكيب المفلترة</div>
+                </div>
+            `;
+        }
+        
+        // إنشاء الخريطة الحرارية
+        function createHeatmap() {
+            const files = Object.keys(data.file_stats);
+            const compounds = filteredData.slice(0, 20).map(b => b.compound);
+            
+            const heatmapData = [];
+            for (let compound of compounds) {
+                const row = [];
+                for (let file of files) {
+                    const contexts = data.contexts[compound] || [];
+                    const fileContexts = contexts.filter(c => c.file === file);
+                    row.push(fileContexts.length);
+                }
+                heatmapData.push(row);
+            }
+            
+            const trace = {
+                z: heatmapData,
+                x: files,
+                y: compounds,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                hoverongaps: false
+            };
+            
+            const layout = {
+                title: 'توزيع التراكيب عبر الملفات',
+                xaxis: {title: 'الملفات'},
+                yaxis: {title: 'التراكيب'}
+            };
+            
+            Plotly.newPlot('heatmap', [trace], layout);
+        }
+        
+        // إنشاء الرسم ثلاثي الأبعاد
+        function createScatter3D() {
+            const trace = {
+                x: filteredData.map(b => b.pmi),
+                y: filteredData.map(b => b.t_score),
+                z: filteredData.map(b => b.log_likelihood),
+                mode: 'markers',
+                type: 'scatter3d',
+                marker: {
+                    size: filteredData.map(b => Math.min(b.frequency / 2, 20)),
+                    color: filteredData.map(b => b.pmi),
+                    colorscale: 'Viridis',
+                    opacity: 0.8
+                },
+                text: filteredData.map(b => b.compound),
+                hovertemplate: '<b>%{text}</b><br>PMI: %{x}<br>T-Score: %{y}<br>Log-Likelihood: %{z}<extra></extra>'
+            };
+            
+            const layout = {
+                scene: {
+                    xaxis: {title: 'PMI'},
+                    yaxis: {title: 'T-Score'},
+                    zaxis: {title: 'Log-Likelihood'}
+                },
+                margin: {l: 0, r: 0, b: 0, t: 0}
+            };
+            
+            Plotly.newPlot('scatter3d', [trace], layout);
+        }
+        
+        // إنشاء مخطط Chord
+        function createChordChart() {
+            const topCompounds = filteredData.slice(0, 10);
+            const matrix = [];
+            const labels = topCompounds.map(b => b.compound);
+            
+            // إنشاء مصفوفة الارتباطات
+            for (let i = 0; i < labels.length; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < labels.length; j++) {
+                    if (i === j) {
+                        matrix[i][j] = 0;
+                    } else {
+                        // محاكاة الارتباط بناءً على التشابه في المقاييس
+                        const similarity = 1 / (1 + Math.abs(topCompounds[i].pmi - topCompounds[j].pmi));
+                        matrix[i][j] = similarity * 10;
+                    }
+                }
+            }
+            
+            const chordData = {
+                type: 'chord',
+                matrix: matrix,
+                labels: labels,
+                colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+            };
+            
+            const layout = {
+                title: 'ارتباطات التراكيب'
+            };
+            
+            Plotly.newPlot('chordChart', [chordData], layout);
+        }
+        
+        // إنشاء مخطط الترجيحات
+        function createClassificationChart() {
+            const classifications = {};
+            filteredData.forEach(b => {
+                const cls = b.comprehensive_classification;
+                classifications[cls] = (classifications[cls] || 0) + 1;
+            });
+            
+            const trace = {
+                x: Object.keys(classifications),
+                y: Object.values(classifications),
+                type: 'bar',
+                marker: {
+                    color: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3']
+                }
+            };
+            
+            const layout = {
+                title: 'توزيع الترجيحات',
+                xaxis: {title: 'نوع الترجيح'},
+                yaxis: {title: 'عدد التراكيب'}
+            };
+            
+            Plotly.newPlot('classificationChart', [trace], layout);
+        }
+        
+        // إنشاء شجرة القرار
+        function createDecisionTree() {
+            const treeData = {
+                type: 'treemap',
+                labels: ['التراكيب', 'PMI ≥ 6', 'PMI < 6', 'T-Score ≥ 4', 'T-Score < 4', 
+                        'Log-Likelihood ≥ 100', 'Log-Likelihood < 100', 'ترجيح قوي', 'ترجيح ضعيف'],
+                parents: ['', 'التراكيب', 'التراكيب', 'PMI ≥ 6', 'PMI ≥ 6', 
+                         'T-Score ≥ 4', 'T-Score ≥ 4', 'Log-Likelihood ≥ 100', 'Log-Likelihood < 100'],
+                values: [filteredData.length, 0, 0, 0, 0, 0, 0, 0, 0],
+                textinfo: 'label+value'
+            };
+            
+            const layout = {
+                title: 'شجرة قرار الترجيح'
+            };
+            
+            Plotly.newPlot('decisionTree', [treeData], layout);
+        }
+        
+        // إنشاء الجدول التفاعلي
+        function createDataTable() {
+            const tableContainer = document.getElementById('dataTable');
+            let html = `
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                        <tr style="background: #667eea; color: white;">
+                            <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">التركيب</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">التكرار</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">PMI</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">T-Score</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">الترجيح</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">السياقات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            filteredData.forEach(bigram => {
+                const hasContexts = (bigram.contexts && bigram.contexts.length > 0);
+                html += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 12px; text-align: right; border: 1px solid #ddd;">${bigram.compound}</td>
+                        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${bigram.frequency}</td>
+                        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${bigram.pmi.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${bigram.t_score.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${bigram.comprehensive_classification}</td>
+                        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+                            ${hasContexts ? 
+                                `<button onclick="showContexts('${bigram.compound}')" style="background: #4caf50; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">عرض السياقات</button>` :
+                                '<span style="color: #999;">لا توجد</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            tableContainer.innerHTML = html;
+        }
+        
+        // تطبيق الفلاتر
+        function applyFilters() {
+            const classificationFilter = document.getElementById('classificationFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredData = [...data.bigrams];
+            
+            // فلتر الترجيح
+            if (classificationFilter !== 'all') {
+                filteredData = filteredData.filter(b => b.comprehensive_classification === classificationFilter);
+            }
+            
+            // الترتيب
+            filteredData.sort((a, b) => {
+                switch (sortBy) {
+                    case 'pmi': return b.pmi - a.pmi;
+                    case 'frequency': return b.frequency - a.frequency;
+                    case 'spread': return b.spread - a.spread;
+                    case 'entropy': return b.entropy - a.entropy;
+                    default: return 0;
+                }
+            });
+            
+            updateStats();
+            createHeatmap();
+            createScatter3D();
+            createChordChart();
+            createClassificationChart();
+            createDecisionTree();
+            createDataTable();
+        }
+        
+        // عرض السياقات
+        function showContexts(compound) {
+            const modal = document.getElementById('contextModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            const bigram = data.bigrams.find(b => b.compound === compound);
+            if (!bigram || !bigram.contexts || bigram.contexts.length === 0) {
+                alert('لا توجد سياقات لهذا التركيب');
+                return;
+            }
+            
+            modalTitle.textContent = `نماذج السياق: ${compound}`;
+            
+            let contextsHtml = '';
+            bigram.contexts.forEach((context, index) => {
+                const highlightedContext = context.context.replace(
+                    bigram.compound,
+                    `<span class="highlight">${bigram.compound}</span>`
+                );
+                
+                contextsHtml += `
+                    <div class="context-item">
+                        <strong>الملف:</strong> ${context.file}<br>
+                        <strong>السياق:</strong> ${highlightedContext}
+                    </div>
+                `;
+            });
+            
+            modalContent.innerHTML = contextsHtml;
+            modal.style.display = 'block';
+        }
+        
+        // إغلاق Modal
+        function closeModal() {
+            document.getElementById('contextModal').style.display = 'none';
+        }
+        
+        // إغلاق Modal عند النقر خارجه
+        window.onclick = function(event) {
+            const modal = document.getElementById('contextModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // تحميل البيانات التجريبية عند تحميل الصفحة
+        window.onload = function() {
+            loadSampleData();
+        };
+    </script>
+</body>
+</html>
