@@ -1,4 +1,4 @@
-# المختار التركيبي
+# المختار التركيبي / Syntactic Selector
 
 <div dir="rtl">
 
